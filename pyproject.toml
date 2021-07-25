@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "mower"
+version = "0.1.0"
+description = "Python mower for blablacar"
+authors = ["patricio tula <tula.patricio@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "mower"},
+    { include = "mower_cli"}
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.8.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+pycodestyle = "^2.7.0"
+mypy = "^0.910"
+pytest-cov = "^2.12.1"
+coverage = "^5.5"
+pytest-mock = "^3.6.1"
+
+[tool.poetry.scripts]
+mower = "mower_cli.mower_cli:cli"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

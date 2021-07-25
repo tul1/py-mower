@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.156" timestamp="2021-07-25T11:31:56.725661" hostname="lucero-ThinkPad-T480"><testcase classname="" name="tests.unit.test_mower" time="0.000"><error message="collection failure">ImportError while importing test module '/home/lucero/mower/tests/unit/test_mower.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/unit/test_mower.py:6: in &lt;module&gt;
+    from mower import Mower
+E   ImportError: cannot import name 'Mower' from 'mower' (/home/lucero/mower/mower/__init__.py)</error></testcase></testsuite></testsuites>
