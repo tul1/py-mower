@@ -15,10 +15,10 @@ class MowerModel(BaseModel):
     def mower_position_from_str(mower_pos_input: str) -> Tuple[int, int, OrdinalDirection]:
         """Build mower position."""
         try:
-            h, w, d = mower_init_pos_input.split()
-            return position=(int(h), int(w), OrdinalDirection.from_str(d))
+            h, w, d = mower_pos_input.split()
+            return int(h), int(w), OrdinalDirection.from_str(d)
         except (ValueError, OrdinalDirectionError):
-            raise MowerModelLoadError(value=mower_init_pos_input, message='Wrong Mower position params in the input file.')
+            raise MowerModelLoadError(value=mower_pos_input, message='Wrong Mower position params in the input file.')
 
     @classmethod
     def from_initial_position_str(cls: MowerModel, mower_init_pos_input: str) -> MowerModel:

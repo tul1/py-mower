@@ -20,8 +20,8 @@ class TestMowerModel(TestCase):
         # Then
         expected_position = (2, 2, OrdinalDirection.NORTH)
 
-        self.assertEquals(expected_position, mower_model.position)
-        self.assertEquals([], mower_model.directions)
+        self.assertEqual(expected_position, mower_model.position)
+        self.assertEqual([], mower_model.directions)
 
     def test_from_initial_position_str_raises_on_wrong_direction(self):
         """Test building a mower model from initial position string."""
