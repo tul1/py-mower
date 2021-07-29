@@ -75,6 +75,8 @@ class FileMowerParserService(MowerParserService):
                     mowers = FileMowerParserService.parse_mower_directions(mowers, mower_position_xy, line)
                 else:
                     raise LoadFileParserError(value=line, message='Error while parsing input Mower file.')
+        if lawn is None:
+             raise LoadFileParserError(value=lawn, message='Error while parsing input Mower file. Empty input file.')
         return mowers, lawn
 
 
