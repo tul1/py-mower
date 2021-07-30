@@ -7,21 +7,6 @@ from mower.resources.services.mower_parsers_service import FileMowerParserServic
 from mower.utils.exceptions import LoadFileParserError
 
 
-def patch_and_run_parse_method(method_input):
-    """Helper function patch parser method."""
-    parser = FileMowerParserService('filename')
-    with patch('mower.resources.services.mower_parsers_service.open',
-            mock_open(read_data=method_input), create=True) as file_mock:
-        file_mock.return_value.__iter__.return_value = method_input.splitlines()
-        return parser.parse()
-
-def assert_parse_method_raises_custom_exception(method_input, expected_exception, assert_method):
-    """Helper function to assert specific exception for parser method."""
-    text_file_data = '\n'.join(method_input)
-    with assert_method(expected_exception):
-        patch_and_run_parse_method(text_file_data)
-
-
 # @patch('mower.resources.services.mower_parsers_service.MowerModel')
 # class TestParseMower(TestCase):
 #     """Mower Parser test."""
@@ -38,20 +23,45 @@ def assert_parse_method_raises_custom_exception(method_input, expected_exception
 #                                                     assert_method=self.assertRaises)
 
 
-# @patch('mower.resources.services.mower_parsers_service.MowerModel.extend_directions_from_str')
-# class TestParseDirections(TestCase):
-#     """Mower Directions Parser test."""
-#     def test_parse_raises_on_two_mower_with_same_init_position(self, _):
-#         """Test parse mower raises error on wrong mower file data."""
-#         with self.assertRaises(LoadFileParserError):
-#             patch_and_run_parse_method('\n'.join(['4 4', '2 2 N', '2 2 S', 'LB']))
+@patch('mower.resources.services.mower_parsers_service.MowerModel.extend_directions_from_str')
+class TestParseDirections(TestCase):
+    """Mower Directions Parser test."""
+    def test_parse_mower_directions(self, extend_dirs_mock):
+        """Test parse mower raises error on wrong directions."""
+        # Given
+        mowers = {(1, 1): 'mower data'}
 
-#     def test_parse_raises_on_mower_outside_lawn(self, _):
-#         """Test parse mower raises error on wrong mower file data."""
-#         ['2 2', '4 4 S']
-#         assert_parse_method_raises_custom_exception(method_input=['2 2', '4 4 S'],
-#                                                     expected_exception=LoadFileParserError,
-#                                                     assert_method=self.assertRaises)
+        # When
+        actual_mowers = FileMowerParserService.parse_mower_directions(mowers, (1, 1), 'line')
+
+        # Then
+        expected_mowers = {(1, 1): extend_dirs_mock.return_value}
+
+        self.assertEquals(expected_mowers, actual_mowers)
+
+    def test_parse_mower_directions_raises_on_nonunexistent_posxy(self, _):
+        """Test parse mower raises error on wrong directions."""
+        # Given
+        mowers = dict()
+
+        # When / Then
+        with self.assertRaises(LoadFileParserError):
+            FileMowerParserService.parse_mower_directions(mowers, (1, 1), 'line')
+
+
+def patch_and_run_parse_method(method_input):
+    """Helper function patch parser method."""
+    parser = FileMowerParserService('filename')
+    with patch('mower.resources.services.mower_parsers_service.open',
+            mock_open(read_data=method_input), create=True) as file_mock:
+        file_mock.return_value.__iter__.return_value = method_input.splitlines()
+        return parser.parse()
+
+def assert_parse_method_raises_custom_exception(method_input, expected_exception, assert_method):
+    """Helper function to assert specific exception for parser method."""
+    text_file_data = '\n'.join(method_input)
+    with assert_method(expected_exception):
+        patch_and_run_parse_method(text_file_data)
 
 
 @patch('mower.resources.services.mower_parsers_service.FileMowerParserService.parse_mower_directions')
