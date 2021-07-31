@@ -34,12 +34,12 @@ class FileMowerParserService(MowerParserService):
     @staticmethod
     def parse_mower_position(mowers: Dict[Tuple[int, int], MowerModel], lawn: LawnModel, line: str) -> Tuple[Tuple[int, int], Dict[Tuple[int, int], MowerModel]]:
         """Parse mower position string."""
-        x, y, _ = MowerModel.mower_position_from_str(line)
+        x, y, o = MowerModel.position_from_str(line)
         if x > lawn.width or y > lawn.height or y <= 0 or x <= 0:
             raise LoadFileParserError(value=line,
                                       message=f'Error while parsing input Mower file. Mower is outside the Lawn.')
-        if (pos_xy := (x, y)) not in mowers:    
-            mowers[pos_xy] = MowerModel.from_initial_position(pos_xy)
+        if (pos_xy := (x, y)) not in mowers:
+            mowers[pos_xy] = MowerModel(position=(x, y, o))
             return pos_xy, mowers
         else:
             raise LoadFileParserError(value=line,
@@ -66,17 +66,15 @@ class FileMowerParserService(MowerParserService):
                 if self.EMPTY_LINE_PATTERN.match(line):
                     # Skip empty line
                     continue
-                if self.LAWN_LINE_PATTERN.match(line) and lawn_params_is_set == False:
+                if self.LAWN_LINE_PATTERN.match(line) and not lawn_params_is_set:
                     lawn = FileMowerParserService.parse_lawn(line)
                     lawn_params_is_set = True
-                elif self.MOWER_INITIAL_POSITION_LINE_PATTERN.match(line) and lawn_params_is_set == True:
+                elif self.MOWER_INITIAL_POSITION_LINE_PATTERN.match(line) and lawn_params_is_set:
                     mower_position_xy, mowers = FileMowerParserService.parse_mower_position(mowers, lawn, line)
-                elif self.MOWER_DIRECTIONS_LINE_PATTERN.match(line) and lawn_params_is_set == True:
+                elif self.MOWER_DIRECTIONS_LINE_PATTERN.match(line) and lawn_params_is_set:
                     mowers = FileMowerParserService.parse_mower_directions(mowers, mower_position_xy, line)
                 else:
                     raise LoadFileParserError(value=line, message='Error while parsing input Mower file.')
         if lawn is None:
-             raise LoadFileParserError(value=lawn, message='Error while parsing input Mower file. Empty input file.')
+            raise LoadFileParserError(value=lawn, message='Error while parsing input Mower file. Empty input file.')
         return mowers, lawn
-
-

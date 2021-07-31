@@ -55,7 +55,7 @@ class TestMowerModel(TestCase):
 
         # When
         mower_model = MowerModel.extend_directions_from_str(mower_model, raw_directions)
-        
+
         # Then
         expected_directions = [RelativeDirection.LEFT, RelativeDirection.FRONT, RelativeDirection.RIGHT, RelativeDirection.BACK,
                                RelativeDirection.BACK, RelativeDirection.RIGHT, RelativeDirection.FRONT, RelativeDirection.LEFT,
@@ -73,7 +73,7 @@ class TestMowerModel(TestCase):
 
         # When
         mower_model = MowerModel.extend_directions_from_str(mower_model, raw_directions)
-        
+
         # Then
         expected_directions = [RelativeDirection.BACK, RelativeDirection.FRONT]
 
@@ -87,7 +87,7 @@ class TestMowerModel(TestCase):
 
         # When
         mower_model = MowerModel.extend_directions_from_str(mower_model, raw_directions)
-        
+
         # Then
         expected_directions = []
 

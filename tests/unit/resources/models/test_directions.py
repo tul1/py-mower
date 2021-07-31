@@ -40,7 +40,7 @@ class TestDirections(TestCase):
         self.assertIs(RelativeDirection.BACK, RelativeDirection.from_str('B'))
         self.assertIs(RelativeDirection.LEFT, RelativeDirection.from_str('L'))
         self.assertIs(RelativeDirection.RIGHT, RelativeDirection.from_str('R'))
-    
+
     def test_ordinal_direction_str(self):
         """Test relative direction str representational method."""
         self.assertEquals('F', str(RelativeDirection.FRONT))
@@ -58,4 +58,3 @@ class TestDirections(TestCase):
         self.assertRaises(RelativeDirectionError, RelativeDirection.from_str, 'n')
         self.assertRaises(RelativeDirectionError, RelativeDirection.from_str, 'w')
         self.assertRaises(RelativeDirectionError, RelativeDirection.from_str, 'e')
-

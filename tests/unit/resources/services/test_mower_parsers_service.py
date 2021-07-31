@@ -7,20 +7,58 @@ from mower.resources.services.mower_parsers_service import FileMowerParserServic
 from mower.utils.exceptions import LoadFileParserError
 
 
-# @patch('mower.resources.services.mower_parsers_service.MowerModel')
-# class TestParseMower(TestCase):
-#     """Mower Parser test."""
-#     def test_parse_raises_on_two_mower_with_same_init_position(self, _):
-#         """Test parse mower raises error on wrong mower file data."""
-#         with self.assertRaises(LoadFileParserError):
-#             patch_and_run_parse_method('\n'.join(['4 4', '2 2 N', '2 2 S', 'LB']))
+@patch('mower.resources.services.mower_parsers_service.MowerModel')
+class TestParseMower(TestCase):
+    """Mower Parser test."""
+    def test_parse_mower_position_raises_on_mower_outside_lawn(self, mwr_mock):
+        """Test parse mower raises error on wrong mower file data."""
+        # Given
+        mowers = dict()
+        lawn = MagicMock(height=2, width=2)
 
-#     def test_parse_raises_on_mower_outside_lawn(self, _):
-#         """Test parse mower raises error on wrong mower file data."""
-#         ['2 2', '4 4 S']
-#         assert_parse_method_raises_custom_exception(method_input=['2 2', '4 4 S'],
-#                                                     expected_exception=LoadFileParserError,
-#                                                     assert_method=self.assertRaises)
+        # When / Then
+        with self.assertRaises(LoadFileParserError):
+            mwr_mock.position_from_str.return_value = (4, 2, 'N')
+            FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+        with self.assertRaises(LoadFileParserError):
+            mwr_mock.position_from_str.return_value = (0, 4, 'N')
+            FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+        with self.assertRaises(LoadFileParserError):
+            mwr_mock.position_from_str.return_value = (4, 0, 'N')
+            FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+        with self.assertRaises(LoadFileParserError):
+            mwr_mock.position_from_str.return_value = (2, 4, 'N')
+            FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+    def test_parse_mower_raises_on_two_mowers_in_the_position(self, mwr_mock):
+        """Test parse mower raises error on wrong mower file data."""
+        # Given
+        mowers = {(2, 4): (2, 4, 'S')}
+        lawn = MagicMock(height=4, width=4)
+        mwr_mock.position_from_str.return_value = (2, 4, 'N')
+
+        # When / Then
+        with self.assertRaises(LoadFileParserError):
+            FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+    def test_parse_mower(self, mwr_mock):
+        """Test parse mower raises error on wrong mower file data."""
+        # Given
+        mowers = {(2, 4): (2, 4, 'S')}
+        lawn = MagicMock(height=4, width=4)
+        mwr_mock.position_from_str.return_value = (2, 2, 'N')
+
+        # When
+        mwr_pos, mwrs = FileMowerParserService.parse_mower_position(mowers, lawn, 'line')
+
+        # Then
+        expected_mowers = {(2, 4): (2, 4, 'S'), (2, 2): mwr_mock.return_value}
+
+        self.assertEquals(expected_mowers, mwrs)
+        self.assertEquals((2, 2), mwr_pos)
 
 
 @patch('mower.resources.services.mower_parsers_service.MowerModel.extend_directions_from_str')
@@ -53,9 +91,10 @@ def patch_and_run_parse_method(method_input):
     """Helper function patch parser method."""
     parser = FileMowerParserService('filename')
     with patch('mower.resources.services.mower_parsers_service.open',
-            mock_open(read_data=method_input), create=True) as file_mock:
+               mock_open(read_data=method_input), create=True) as file_mock:
         file_mock.return_value.__iter__.return_value = method_input.splitlines()
         return parser.parse()
+
 
 def assert_parse_method_raises_custom_exception(method_input, expected_exception, assert_method):
     """Helper function to assert specific exception for parser method."""
@@ -113,15 +152,15 @@ class TestFileMowerParserService(TestCase):
 
         assert_parse_method_raises_custom_exception(method_input=['4 4', '2 2 N 3'],
                                                     expected_exception=LoadFileParserError,
-                                                    assert_method=self.assertRaises)                               
+                                                    assert_method=self.assertRaises)
 
         assert_parse_method_raises_custom_exception(method_input=['4 4', '2 2 N LR'],
                                                     expected_exception=LoadFileParserError,
-                                                    assert_method=self.assertRaises)  
+                                                    assert_method=self.assertRaises)
 
         assert_parse_method_raises_custom_exception(method_input=['4 4', '2 2 R'],
                                                     expected_exception=LoadFileParserError,
-                                                    assert_method=self.assertRaises)  
+                                                    assert_method=self.assertRaises)
 
     def test_parse_raises_on_single_mower_with_random_input(self, lawn_mock, mwr_pos_mock, mwr_dirs_mock):
         """Test parse mower raises error on wrong mower file data."""
@@ -181,7 +220,7 @@ class TestFileMowerParserService(TestCase):
 
         # Then
         lawn_mock.assert_called_once_with('4 4\n')
-        mwr_pos_mock.assert_called_once_with(dict() , lawn_mock.return_value, '2 2 N\n')
+        mwr_pos_mock.assert_called_once_with(dict(), lawn_mock.return_value, '2 2 N\n')
 
         mwr_dir_calls = [call(mwr_pos_mock.return_value[1], (2, 2), 'LBFR\n'),
                          call(mwr_dirs_mock.return_value, (2, 2), 'L\n'),
@@ -194,7 +233,7 @@ class TestFileMowerParserService(TestCase):
         # Given
         mowers = MagicMock()
         mwr_pos_mock.side_effect = [((2, 2), mowers), ((3, 3), mowers), ((5, 5), mowers)]
-        
+
         # When
         patch_and_run_parse_method('\n'.join(['4 4', '2 2 N', 'LBFR', 'L', 'F', 'RRRLLBB', '3 3 E', 'RRR', '5 5 S']))
 

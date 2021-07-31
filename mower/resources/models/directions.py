@@ -3,6 +3,7 @@ from enum import Enum
 
 from mower.utils.exceptions import OrdinalDirectionError, RelativeDirectionError
 
+
 class Direction(Enum):
     """Interface for direction types."""
 

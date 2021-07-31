@@ -5,6 +5,7 @@ from unittest import TestCase
 from mower.resources.models.lawn_model import LawnModel
 from mower.utils.exceptions import LawnModelLoadError
 
+
 class TestLawnModel(TestCase):
     """LawnModel Test"""
     def test_from_str(self):
@@ -13,7 +14,6 @@ class TestLawnModel(TestCase):
         raw_lawn_with_spaces_at_begining = '  3 3'
         raw_lawn_with_spaces_at_end = '3 3  '
         raw_lawn_with_extra_spaces = ' 3   3  '
-
 
         # When
         lawn_1 = LawnModel.from_str(raw_lawn)
@@ -36,7 +36,6 @@ class TestLawnModel(TestCase):
         raw_lawn_with_char = '3 e'
         raw_lawn_with_three_params = ' 3 2 2'
         raw_lawn_with_different_separator = '3|2'
-        
 
         # When / Then
         self.assertRaises(LawnModelLoadError,
@@ -54,4 +53,3 @@ class TestLawnModel(TestCase):
         self.assertRaises(LawnModelLoadError,
                           LawnModel.from_str,
                           raw_lawn_with_different_separator)
-        
