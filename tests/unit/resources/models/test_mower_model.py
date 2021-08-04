@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from mower.resources.models.directions import RelativeDirection, OrdinalDirection
 from mower.resources.models.mower_model import MowerModel
-from mower.utils.exceptions import MowerModelLoadError
+from mower.utils.exceptions import MowerModelLoadError, MowerModelError
 
 
 class TestMowerModel(TestCase):
@@ -92,3 +92,161 @@ class TestMowerModel(TestCase):
         expected_directions = []
 
         self.assertEquals(expected_directions, mower_model.directions)
+
+    def test_translate_mower_position_moving_foreward(self):
+        """Test when translate mower foreward."""
+        # Mower moves 1 position
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        1,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((1, 2, OrdinalDirection.NORTH), position)
+
+        # Mower moves 1 position
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        -1,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((1, 2, OrdinalDirection.NORTH), position)
+
+        # Mower reaches upper limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        10,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((1, 4, OrdinalDirection.NORTH), position)
+
+        # Mower reaches lower limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.SOUTH),
+                                                        10,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((1, 0, OrdinalDirection.SOUTH), position)
+
+        # Mower reaches further right limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.EAST),
+                                                        10,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((2, 1, OrdinalDirection.EAST), position)
+
+        # Mower reaches further left limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.WEST),
+                                                        10,
+                                                        RelativeDirection.FRONT,
+                                                        (3, 5))
+        self.assertEquals((0, 1, OrdinalDirection.WEST), position)
+
+    def test_translate_mower_position_moving_backward(self):
+        """Test when translate mower backward."""
+        # Mower moves 1 position
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        1,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((1, 0, OrdinalDirection.NORTH), position)
+
+        # Mower moves 1 position
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        -1,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((1, 0, OrdinalDirection.NORTH), position)
+
+        # Mower reaches upper limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                        10,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((1, 0, OrdinalDirection.NORTH), position)
+
+        # Mower reaches lower limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.SOUTH),
+                                                        10,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((1, 4, OrdinalDirection.SOUTH), position)
+
+        # Mower reaches further right limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.EAST),
+                                                        10,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((0, 1, OrdinalDirection.EAST), position)
+
+        # Mower reaches further left limit
+        position = MowerModel.translate_mower_position((1, 1, OrdinalDirection.WEST),
+                                                        10,
+                                                        RelativeDirection.BACK,
+                                                        (3, 5))
+        self.assertEquals((2, 1, OrdinalDirection.WEST), position)
+
+    def test_translate_mower_position_raises_MowerModelError(self):
+        """Test when translate raises exception because of wrong direction."""
+        self.assertRaises(MowerModelError,
+                          MowerModel.translate_mower_position,
+                          (1, 1, OrdinalDirection.NORTH),
+                          10,
+                          RelativeDirection.LEFT,
+                          (2, 2))
+        self.assertRaises(MowerModelError,
+                          MowerModel.translate_mower_position,
+                          (1, 1, OrdinalDirection.NORTH),
+                          10,
+                          RelativeDirection.RIGHT,
+                          (2, 2))
+
+    def test_rotate_mower_position_clockwise(self):
+        """Test when rotate raises exception because of wrong direction."""
+        # Rotate North to East
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                    RelativeDirection.RIGHT)
+        self.assertEquals((1, 1, OrdinalDirection.EAST), position)
+
+        # Rotate East to South
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.EAST),
+                                                    RelativeDirection.RIGHT)
+        self.assertEquals((1, 1, OrdinalDirection.SOUTH), position)
+
+        # Rotate South to West
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.SOUTH),
+                                                    RelativeDirection.RIGHT)
+        self.assertEquals((1, 1, OrdinalDirection.WEST), position)
+
+        # Rotate West to North
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.WEST),
+                                                    RelativeDirection.RIGHT)
+        self.assertEquals((1, 1, OrdinalDirection.NORTH), position)
+
+    def test_rotate_mower_position_anticlockwise(self):
+        """Test when rotate raises exception because of wrong direction."""
+        # Rotate North to West
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.NORTH),
+                                                    RelativeDirection.LEFT)
+        self.assertEquals((1, 1, OrdinalDirection.WEST), position)
+
+        # Rotate West to South
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.WEST),
+                                                    RelativeDirection.LEFT)
+        self.assertEquals((1, 1, OrdinalDirection.SOUTH), position)
+
+        # Rotate South to East
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.SOUTH),
+                                                    RelativeDirection.LEFT)
+        self.assertEquals((1, 1, OrdinalDirection.EAST), position)
+
+        # Rotate East to North
+        position = MowerModel.rotate_mower_position((1, 1, OrdinalDirection.EAST),
+                                                    RelativeDirection.LEFT)
+        self.assertEquals((1, 1, OrdinalDirection.NORTH), position)
+
+    def test_rotate_mower_position_raises_MowerModelError(self):
+        """Test when rotate raises exception because of wrong direction."""
+        self.assertRaises(MowerModelError,
+                          MowerModel.rotate_mower_position,
+                          (1, 1, OrdinalDirection.NORTH),
+                          RelativeDirection.BACK)
+        self.assertRaises(MowerModelError,
+                          MowerModel.rotate_mower_position,
+                          (1, 1, OrdinalDirection.NORTH),
+                          RelativeDirection.FRONT)

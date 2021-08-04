@@ -39,6 +39,13 @@ class MowerModelLoadError(MowerError):
         super().__init__(value, message)
 
 
+class MowerModelError(MowerError):
+    """Custom error that is raised when MowerModel coud."""
+
+    def __init__(self, value: str, message: str) -> None:
+        super().__init__(value, message)
+
+
 class LoadFileParserError(MowerError):
     """Custom error that is raised when FileParserService couldn't load correct data from the input file."""
 
