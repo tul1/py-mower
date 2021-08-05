@@ -4,18 +4,20 @@ from typing import Tuple, List, Optional
 from itertools import cycle
 from collections import namedtuple
 
-
 from mower.resources.models.directions import OrdinalDirection, RelativeDirection
+from mower.resources.models.lawn_model import LawnDimensions
+from mower.resources.models.position_model import Position
 from mower.utils.exceptions import MowerModelLoadError, OrdinalDirectionError, MowerModelError
 
 
 MowerPosition = namedtuple('MowerPosition', ['x', 'y', 'o'])
 
+
 class MowerModel(BaseModel):
     """Mower model."""
 
     position: MowerPosition
-    directions: Optional[List[RelativeDirection]] = list()
+    directions: Optional[List[RelativeDirection]] = []
 
     @staticmethod
     def position_from_str(mower_pos_input: str) -> MowerPosition:
@@ -40,7 +42,7 @@ class MowerModel(BaseModel):
         return MowerModel(position=base_model.position, directions=new_directions)
 
     @staticmethod
-    def translate_mower_position(mower_position: MowerPosition, distance: int, direction: RelativeDirection, limit: Tuple[int, int]) -> MowerPosition:
+    def translate_mower_position(mower_position: MowerPosition, distance: int, direction: RelativeDirection, limit: LawnDimensions) -> MowerPosition:
         """Translate mower position."""
         if direction not in (RelativeDirection.FRONT, RelativeDirection.BACK):
             raise MowerModelError(value=direction, message=f'Mower cannot be translate with a {direction} direction.')
@@ -48,20 +50,20 @@ class MowerModel(BaseModel):
         distance = abs(distance) * (1 if direction == RelativeDirection.FRONT else -1)
         if o == OrdinalDirection.NORTH or o == OrdinalDirection.SOUTH:
             distance *= (1 if o == OrdinalDirection.NORTH else -1)
-            if 0 <= y + distance < limit[1]:
+            if 0 <= y + distance < limit.h:
                 return MowerPosition(x, y + distance, o)
             elif y + distance <= 0:
                 return x, 0, o
-            elif y + distance > limit[1]:
-                return MowerPosition(x, limit[1] - 1, o)
+            elif y + distance > limit.h:
+                return MowerPosition(x, limit.h - 1, o)
         if o == OrdinalDirection.EAST or o == OrdinalDirection.WEST:
             distance *= (1 if o == OrdinalDirection.EAST else -1)
-            if 0 <= y + distance < limit[1]:
+            if 0 <= y + distance < limit.w:
                 return MowerPosition(x + distance, y, o)
             elif y + distance <= 0:
                 return 0, y, o
-            elif y + distance > limit[1]:
-                return MowerPosition(limit[0] - 1, y, o)
+            elif y + distance > limit.w:
+                return MowerPosition(limit.w - 1, y, o)
 
     @staticmethod
     def rotate_mower_position(mower_position: MowerPosition, direction: RelativeDirection) -> MowerPosition:

@@ -4,15 +4,16 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Dict
 
 from mower.resources.models.lawn_model import LawnModel
-from mower.resources.models.mower_model import MowerModel
+from mower.resources.models.mower_model import MowerModel, MowerPosition
 from mower.resources.models.directions import OrdinalDirection
+from mower.resources.models.position_model import Position
 from mower.utils.exceptions import LoadFileParserError
 
 
 class MowerParserService(ABC):
-    """Parser Interface."""
+    """Parser Base Class."""
     @abstractmethod
-    def parse(self) -> Tuple[Dict[Tuple[int, int], MowerModel], LawnModel]:
+    def parse(self) -> Tuple[Dict[Position, MowerModel], LawnModel]:
         pass
 
 
@@ -32,13 +33,13 @@ class FileMowerParserService(MowerParserService):
         return LawnModel.from_str(line)
 
     @staticmethod
-    def parse_mower_position(mowers: Dict[Tuple[int, int], MowerModel], lawn: LawnModel, line: str) -> Tuple[Tuple[int, int], Dict[Tuple[int, int], MowerModel]]:
+    def parse_mower_position(mowers: Dict[Position, MowerModel], lawn: LawnModel, line: str) -> Tuple[Position, Dict[Position, MowerModel]]:
         """Parse mower position string."""
         x, y, o = MowerModel.position_from_str(line)
         if x > lawn.width or y > lawn.height or y <= 0 or x <= 0:
             raise LoadFileParserError(value=line,
                                       message=f'Error while parsing input Mower file. Mower is outside the Lawn.')
-        if (pos_xy := (x, y)) not in mowers:
+        if (pos_xy := Position(x, y)) not in mowers:
             mowers[pos_xy] = MowerModel(position=(x, y, o))
             return pos_xy, mowers
         else:
@@ -46,7 +47,7 @@ class FileMowerParserService(MowerParserService):
                                       message=f'Error while parsing input Mower file. Two mowers with the same position: {pos_xy}.')
 
     @staticmethod
-    def parse_mower_directions(mowers: Dict[Tuple[int, int], MowerModel], pos_xy: Tuple[int, int], line: str) -> Dict[Tuple[int, int], MowerModel]:
+    def parse_mower_directions(mowers: Dict[Position, MowerModel], pos_xy: Position, line: str) -> Dict[Position, MowerModel]:
         """Parse mower directions string."""
         try:
             mowers[pos_xy] = MowerModel.extend_directions_from_str(mowers[pos_xy], line)
@@ -55,12 +56,12 @@ class FileMowerParserService(MowerParserService):
             raise LoadFileParserError(value=line,
                                       message='Error while parsing input Mower file. No mower initial position has been declared.')
 
-    def parse(self) -> Tuple[Dict[Tuple[int, int], MowerModel], LawnModel]:
+    def parse(self) -> Tuple[Dict[Position, MowerModel], LawnModel]:
         """Load mowers and lanw from file."""
-        mowers: Dict[Tuple[int, int], MowerModel] = dict()
+        mowers: Dict[Position, MowerModel] = dict()
         lawn: LawnModel = None
         lawn_params_is_set: bool = False
-        mower_position_xy: Tuple[int, int] = None
+        mower_position_xy: Position = None
         with open(self.filename, 'rt') as mower_file:
             for line in mower_file:
                 if self.EMPTY_LINE_PATTERN.match(line):
@@ -77,4 +78,13 @@ class FileMowerParserService(MowerParserService):
                     raise LoadFileParserError(value=line, message='Error while parsing input Mower file.')
         if lawn is None:
             raise LoadFileParserError(value=lawn, message='Error while parsing input Mower file. Empty input file.')
+        return mowers, lawn
+
+
+class StdinMowerParserService(MowerParserService):
+    """Class Stdin Mower Parser Service."""
+    def parse(self) -> Tuple[Dict[Position, MowerModel], LawnModel]:
+        """Load mowers and lanw from stdin."""
+        mowers: Dict[Position, MowerModel] = dict()
+        lawn: LawnModel = None
         return mowers, lawn
